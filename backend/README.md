@@ -20,7 +20,7 @@ This is the backend server for the Instagram Clone project, built with Node.js, 
 ### Installation
 1. **Clone the repository:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/seneva981/Project-14--Instagram-Clone--MERN--.git
    cd "Project 14 (Instagram Clone [MERN])/backend"
    ```
 2. **Install dependencies:**
