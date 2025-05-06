@@ -2,6 +2,7 @@ import { validationResult } from "express-validator";
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import blacklistToken from "../models/blacklistToken.model.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -56,7 +57,7 @@ export const loginUser = async (req, res) => {
         success: false,
       });
     }
-    const user = await User.findOne({ $or: [{email},{username}] });
+    const user = await User.findOne({ $or: [{ email }, { username }] });
     if (!user) {
       return res.status(401).json({
         message: "User not found with this email or username",
@@ -78,15 +79,45 @@ export const loginUser = async (req, res) => {
       bio: user.bio,
       followers: user.followers,
       following: user.following,
-      posts: user.posts
-    }
-    const token = await jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-    return res.cookie("token", token, { httpOnly: true, secure: true, sameSite: "none", maxAge: 1 * 24 * 60 * 60 * 1000 }).status(200).json({
-      message: "Login successfully",
-      success: true,
-      userCopy,
+      posts: user.posts,
+    };
+    const token = await jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
     });
+    return res
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 1 * 24 * 60 * 60 * 1000,
+      })
+      .status(200)
+      .json({
+        message: "Login successfully",
+        success: true,
+        userCopy,
+      });
   } catch (error) {
     console.log(error);
   }
-}
+};
+
+export const logoutUser = async (req, res) => {
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+    if (token) {
+      await blacklistToken.create({
+        token: token,
+      });
+    }
+    res
+      .clearCookie("token", { httpOnly: true, secure: true, sameSite: "none" })
+      .status(200)
+      .json({
+        message: "Logout successfully",
+        success: true,
+      });
+  } catch (error) {
+    console.log(error);
+  }
+};
