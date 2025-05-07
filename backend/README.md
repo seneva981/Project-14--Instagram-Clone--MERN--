@@ -4,6 +4,7 @@ This is the backend server for the Instagram Clone project, built with Node.js, 
 
 ## Features
 - User registration with validation and password hashing
+- User login with username or email and password
 - MongoDB integration using Mongoose
 - Organized project structure (controllers, models, routes, utils)
 - Environment variable support with dotenv
@@ -32,6 +33,7 @@ This is the backend server for the Instagram Clone project, built with Node.js, 
      ```env
      PORT=4000
      MONGO_URI=your_mongodb_connection_uri_here
+     JWT_SECRET=your_jwt_secret_here
      ```
 4. **Start the server:**
    ```bash
@@ -50,15 +52,11 @@ backend/
     user.controller.js      # User-related logic
   models/                   # Mongoose schemas
     user.model.js           # User schema
-    post.model.js           # Post schema
-    comment.model.js        # Comment schema
-    conversation.model.js   # Conversation schema
-    message.model.js        # Message schema
   routes/                   # Express route definitions
     user.route.js           # User routes
   utils/                    # Utility functions (e.g., database connection)
     db.js                   # MongoDB connection logic
-frontend/                   # (Frontend code, not covered here)
+frontend/                   # (Frontend code, not covered yet)
 ```
 
 ## API Endpoints
@@ -77,9 +75,57 @@ frontend/                   # (Frontend code, not covered here)
     - `201 Created` on success
     - `400` or `401` with error message on failure
 
+### User Login
+- `POST /user/login`
+  - **Body Parameters:**
+    - `email` (string, optional) — User's email address. Required if `username` is not provided.
+    - `username` (string, optional) — User's username. Required if `email` is not provided.
+    - `password` (string, required) — User's password.
+    
+    At least one of `email` or `username` must be provided, along with `password`.
+
+  - **Response:**
+    - `200 OK` on successful login
+      - Sets a `token` cookie (HTTP-only, secure, 1 day expiry)
+      - Returns a JSON object:
+        ```json
+        {
+          "message": "Login successfully",
+          "success": true,
+          "userCopy": {
+            "_id": "<user_id>",
+            "username": "<username>",
+            "email": "<email>",
+            "profilePicture": "<profilePicture>",
+            "bio": "<bio>",
+            "followers": [ ... ],
+            "following": [ ... ],
+            "posts": [ ... ]
+          }
+        }
+        ```
+      - The `userCopy` object does **not** include the password field for security.
+    - `400` if validation fails (missing fields, etc.)
+    - `401` if credentials are incorrect or user not found
+      - Example error response:
+        ```json
+        {
+          "message": "User not found with this email or username",
+          "success": false
+        }
+        ```
+
+  - **Notes:**
+    - The login route accepts either email or username for authentication.
+    - On successful login, the JWT token is stored in a cookie (not in the response body).
+    - Password is never sent in the response.
+    - The cookie is set with `httpOnly`, `secure`, and `sameSite: 'none'` for security.
+    - If login fails, a relevant error message is returned.
+
 ## Environment Variables
 - `PORT`: Port number for the server (default: 4000)
 - `MONGO_URI`: MongoDB connection string
+- `JWT_SECRET` : JWT secret key
 
 ## Development Notes
 - The backend uses ES module syntax (`import/export`).
@@ -91,6 +137,7 @@ frontend/                   # (Frontend code, not covered here)
 ```
 PORT=4000
 MONGO_URI=your_mongodb_connection_uri_here
+JWT_SECRET=your_jwt_secret_here
 ```
 
 ## License
