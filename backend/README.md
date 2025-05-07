@@ -5,6 +5,7 @@ This is the backend server for the Instagram Clone project, built with Node.js, 
 ## Features
 - User registration with validation and password hashing
 - User login with username or email and password
+- User logout with blacklisting the JWT token
 - MongoDB integration using Mongoose
 - Organized project structure (controllers, models, routes, utils)
 - Environment variable support with dotenv
@@ -52,6 +53,7 @@ backend/
     user.controller.js      # User-related logic
   models/                   # Mongoose schemas
     user.model.js           # User schema
+    blacklistToken.model.js # blacklistToken Schema
   routes/                   # Express route definitions
     user.route.js           # User routes
   utils/                    # Utility functions (e.g., database connection)
@@ -121,6 +123,20 @@ frontend/                   # (Frontend code, not covered yet)
     - Password is never sent in the response.
     - The cookie is set with `httpOnly`, `secure`, and `sameSite: 'none'` for security.
     - If login fails, a relevant error message is returned.
+
+### User Logout
+- `GET /user/logout`
+  - **Response:**
+    - `200 OK` on successful logout
+      - Example response:
+        ```json
+        {
+          "message": "Logout successfully",
+          "success": true
+        }
+        ```
+    - The `token` cookie is cleared on the client.
+    - If the user is not logged in or the token is missing, the response is still `200 OK` for idempotency.
 
 ## Environment Variables
 - `PORT`: Port number for the server (default: 4000)
