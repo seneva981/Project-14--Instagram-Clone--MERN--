@@ -121,3 +121,39 @@ export const logoutUser = async (req, res) => {
     console.log(error);
   }
 };
+
+export const getUser = async (req, res) => {
+  try {
+    const userName = req.params.username;
+    if (!userName) {
+      return res.status(400).json({
+        message: "User id is missing in the params",
+        success: false,
+      });
+    }
+    const user = await User.findOne({username: userName});
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+    const userCopy = {
+      _id: user.id,
+      username: user.username,
+      email: user.email,
+      profilePicture: user.profilePicture,
+      bio: user.bio,
+      followers: user.followers,
+      following: user.following,
+      posts: user.posts,
+    };
+    return res.status(200).json({
+      message: "User found successfully",
+      success: true,
+      userCopy,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
