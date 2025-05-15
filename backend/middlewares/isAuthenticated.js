@@ -17,14 +17,14 @@ export const isAuthenticated = async (req, res, next) => {
         success: false,
       });
     }
-    const isdecoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!isdecoded) {
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decodedToken) {
       return res.status(401).json({
         message: "Unauthorized because token is not verified",
         success: false,
       });
     }
-    req.id = isdecoded.userId;
+    req.id = decodedToken.userId;
     return next();
   } catch (error) {
     console.log(error);

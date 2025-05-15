@@ -127,7 +127,7 @@ export const getUser = async (req, res) => {
     const userName = req.params.username;
     if (!userName) {
       return res.status(400).json({
-        message: "User id is missing in the params",
+        message: "Username is missing in the params",
         success: false,
       });
     }
