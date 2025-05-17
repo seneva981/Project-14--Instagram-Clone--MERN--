@@ -8,6 +8,7 @@ This is the backend server for the Instagram Clone project, built with Node.js, 
 - User login with username or email and password
 - User logout with blacklisting the JWT token
 - Get user's profile with having a valid JWT token
+- User profile updation for different fields
 - MongoDB integration using Mongoose
 - Organized project structure (middlewares, controllers, models, routes, utils)
 - Environment variable support with dotenv
@@ -39,6 +40,9 @@ This is the backend server for the Instagram Clone project, built with Node.js, 
      PORT=4000
      MONGO_URI=your_mongodb_connection_uri_here
      JWT_SECRET=your_jwt_secret_here
+     CLOUDINARY_CLOUD_NAME=your_cloudinary_cloudname
+     CLOUDINARY_API_KEY=your_cloudinary_api_key
+     CLOUDINARY_API_KEY_SECRET=your_cloudinary_api_key_secret
      ```
 4. **Start the server:**
    ```bash
@@ -51,8 +55,10 @@ This is the backend server for the Instagram Clone project, built with Node.js, 
 
 ```
 backend/
-  index.js                  # Entry point
+  README.md                 # Backend Documentation
   package.json              # Project metadata and scripts
+  package-lock.json         # Project's node modules detail
+  index.js                  # Entry point
   .env.example              # Example environment variables
   controllers/              # Route handler logic
     user.controller.js      # User-related logic
@@ -63,6 +69,7 @@ backend/
     user.route.js           # User routes
   utils/                    # Utility functions (e.g., database connection)
     db.js                   # MongoDB connection logic
+    cloudinary.js           # Cloudinary connection logic
   middlewares/
     isAuthenticated.js      # User authentication
 frontend/                   # (Frontend code, not covered yet)
@@ -191,20 +198,74 @@ frontend/                   # (Frontend code, not covered yet)
           "success": false
         }
         ```
-    - `500` for server errors
+
+### Update User
+
+- `PUT /user/updateUser`
+  - **Protected Route:** Requires a valid JWT token.
+  - **Consumes:** `multipart/form-data` (for profile picture upload)
+  - **Body/Form Data Parameters:**
+    - `username` (string, optional): New username for the user.
+    - `password` (string, optional): New password (will be hashed before saving).
+    - `bio` (string, optional): New bio for the user.
+    - `profilePicture` (file, optional): New profile picture file to upload (handled by multer and stored on Cloudinary).
+  - **Behavior:**
+    - Only the fields provided in the request will be updated.
+    - If a new profile picture is uploaded, it will be stored on Cloudinary and the user's `profilePicture` field will be updated with the new URL.
+    - If a new password is provided, it will be hashed before saving.
+    - The route uses two middlewares: `isAuthenticated` (for authentication) and `multer` (for file upload).
+  - **Response:**
+    - `200 OK` on successful update
+      - Example response:
+        ```json
+        {
+          "updateUser": {
+            "_id": "<user_id>",
+            "username": "<username>",
+            "email": "<email>",
+            "profilePicture": "<profilePicture>",
+            "bio": "<bio>",
+            "followers": [ ... ],
+            "following": [ ... ],
+            "posts": [ ... ],
+            ...
+          },
+          "message": "User updated successfully",
+          "success": true
+        }
+        ```
+    - `400` if the request is invalid (e.g., missing required fields for your business logic)
       - Example error response:
         ```json
         {
-          "message": "Internal server error",
+          "message": "Invalid request",
           "success": false
         }
         ```
+    - `401` if the user is not authenticated or the token is invalid/expired
+      - Example error response:
+        ```json
+        {
+          "message": "Unauthorized because token is missing or invalid",
+          "success": false
+        }
+        ```
+  - **Notes:**
+    - You can update any combination of `username`, `password`, `bio`, and `profilePicture` in a single request.
+    - If no fields are provided, the user document will remain unchanged.
+    - The route expects the JWT token to be present for authentication.
+    - The `profilePicture` field should be sent as a file in the form data (not as a string).
+    - The password is always hashed before being saved to the database.
+    - The response includes the updated user object (excluding the password).
 
 ## Environment Variables
 
 - `PORT`: Port number for the server (default: 4000)
 - `MONGO_URI`: MongoDB connection string
-- `JWT_SECRET` : JWT secret key
+- `JWT_SECRET`: JWT secret key
+- `CLOUDINARY_CLOUD_NAME`: Cloudinary cloud name
+- `CLOUDINARY_API_KEY`: Cloudinary API key
+- `CLOUDINARY_API_KEY_SECRET`: Cloudinary API secret key
 
 ## Development Notes
 
@@ -219,6 +280,9 @@ frontend/                   # (Frontend code, not covered yet)
 PORT=4000
 MONGO_URI=your_mongodb_connection_uri_here
 JWT_SECRET=your_jwt_secret_here
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloudname_here
+CLOUDINARY_API_KEY=your_cloudinary_api_key_here
+CLOUDINARY_API_KEY_SECRET=your_cloudinary_api_key_secret_here
 ```
 
 ## License

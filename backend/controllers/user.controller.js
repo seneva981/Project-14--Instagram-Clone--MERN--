@@ -3,6 +3,7 @@ import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import blacklistToken from "../models/blacklistToken.model.js";
+import cloudinary from "../utils/cloudinary.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -131,7 +132,7 @@ export const getUser = async (req, res) => {
         success: false,
       });
     }
-    const user = await User.findOne({username: userName});
+    const user = await User.findOne({ username: userName });
     if (!user) {
       return res.status(404).json({
         message: "User not found",
@@ -156,4 +157,34 @@ export const getUser = async (req, res) => {
   } catch (error) {
     console.log(error);
   }
-}
+};
+export const updateUser = async (req, res) => {
+  try {
+    const { username, password, bio } = req.body;
+    const updatedData = {};
+    if (username) {
+      updatedData.username = username;
+    }
+    if (bio) {
+      updatedData.bio = bio;
+    }
+    if (password) {
+      updatedData.password = await bcrypt.hash(password, 10);
+    }
+    if (req.file) {
+      const fileStr = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+      const result = await cloudinary.uploader.upload(fileStr);
+      updatedData.profilePicture = result.secure_url;
+    }
+    const updatedUser = await User.findByIdAndUpdate(req.id, updatedData, {
+      new: true,
+    });
+    return res.status(200).json({
+      updateUser: updatedUser,
+      message: "User updated successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
