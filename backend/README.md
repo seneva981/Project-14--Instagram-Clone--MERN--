@@ -9,6 +9,7 @@ This is the backend server for the Instagram Clone project, built with Node.js, 
 - User logout with blacklisting the JWT token
 - Get user's profile with having a valid JWT token
 - User profile updation for different fields
+- Get suggested users to follow (suggested users API)
 - MongoDB integration using Mongoose
 - Organized project structure (middlewares, controllers, models, routes, utils)
 - Environment variable support with dotenv
@@ -257,6 +258,58 @@ frontend/                   # (Frontend code, not covered yet)
     - The `profilePicture` field should be sent as a file in the form data (not as a string).
     - The password is always hashed before being saved to the database.
     - The response includes the updated user object (excluding the password).
+
+### Get Suggested Users
+
+- `GET /user/getSuggestedUsers`
+  - **Protected Route:** Requires a valid JWT token.
+  - **Query Parameters:**
+    - `limit` (number, optional): Number of suggested users to return (default: 5)
+  - **Response:**
+    - `200 OK` on success
+      - Example response:
+        ```json
+        {
+          "message": "Suggested users found successfully",
+          "success": true,
+          "suggestedUsers": [
+            {
+              "_id": "<user_id>",
+              "username": "<username>",
+              "profilePicture": "<profilePicture>",
+              "bio": "<bio>"
+            },
+            ...
+          ]
+        }
+        ```
+    - `404` if the authenticated user is not found
+      - Example error response:
+        ```json
+        {
+          "message": "User not found",
+          "success": false
+        }
+        ```
+    - `401` if the user is not authenticated or the token is invalid/expired
+      - Example error response:
+        ```json
+        {
+          "message": "Unauthorized because token is missing or invalid",
+          "success": false
+        }
+        ```
+  - **Behavior:**
+    - Returns a list of users that the current user does **not** already follow and does **not** include the current user.
+    - The number of users returned can be controlled with the `limit` query parameter (default is 5).
+    - Only selected fields (`_id`, `username`, `profilePicture`, `bio`) are returned for each suggested user.
+    - If the authenticated user is not found in the database, a 404 error is returned.
+    - If the request is not authenticated, a 401 error is returned.
+    - On server error, a 500 error is returned.
+  - **Notes:**
+    - This route is useful for suggesting new users to follow, similar to Instagram's "Suggested for you" feature.
+    - The route expects the JWT token to be present for authentication.
+    - The response does not include sensitive fields like password.
 
 ## Environment Variables
 

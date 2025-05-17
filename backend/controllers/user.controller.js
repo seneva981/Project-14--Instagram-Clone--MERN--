@@ -188,3 +188,26 @@ export const updateUser = async (req, res) => {
     console.log(error);
   }
 };
+export const getSuggestedUsers = async (req, res) => {
+  try {
+    const user = await User.findById(req.id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+    const suggestedUsers = await User.find({
+      _id: { $ne: req.id, $nin: user.following },
+    })
+      .limit(5)
+      .select("-password");
+    return res.status(200).json({
+      message: "Suggested users found successfully",
+      success: true,
+      suggestedUsers,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
