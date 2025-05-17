@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getSuggestedUsers, getUser, loginUser, logoutUser, registerUser, updateUser } from "../controllers/user.controller.js";
+import { followUser, getSuggestedUsers, getUser, loginUser, logoutUser, registerUser, updateUser } from "../controllers/user.controller.js";
 import { isAuthenticated } from "../middlewares/isAuthenticated.js";
 import multer from "multer";
 
@@ -14,5 +14,6 @@ router.get("/logout", logoutUser);
 router.get("/getUser/:username", isAuthenticated, getUser);
 router.put("/updateUser", isAuthenticated, upload.single("profilePicture"), updateUser);
 router.get("/getSuggestedUsers", isAuthenticated, getSuggestedUsers);
+router.put("/followUser/:username", isAuthenticated, followUser);
 
 export default router;
