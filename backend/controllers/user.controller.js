@@ -234,14 +234,14 @@ export const followUser = async (req, res) => {
         success: false,
       });
     }
-    if (loggedInUser.following.includes(userName)) {
+    if (loggedInUser.following.includes(userName) && user.followers.includes(loggedInUser.username)) {
       return res.status(400).json({
         message: "You are already following this user",
         success: false,
       });
     }
     loggedInUser.following.push(userName);
-    user.followers.push(userName);
+    user.followers.push(loggedInUser.username);
     await loggedInUser.save();
     await user.save();
     return res.status(200).json({
