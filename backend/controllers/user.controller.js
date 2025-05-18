@@ -252,3 +252,44 @@ export const followUser = async (req, res) => {
     console.log(error);
   }
 }
+export const unfollowUser = async (req, res) => {
+  try {
+    const userName = req.params.username;
+    if (!userName) {
+      return res.status(400).json({
+        message: "Username is missing in the params",
+        success: false,
+      });
+    }
+    const user = await User.findOne({ username: userName });
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+    const loggedInUser = await User.findById(req.id);
+    if (!loggedInUser) {
+      return res.status(404).json({
+        message: "Logged in user not found",
+        success: false,
+      });
+    }
+    if (!loggedInUser.following.includes(userName) || !user.followers.includes(loggedInUser.username)) {
+      return res.status(400).json({
+        message: "You are not following this user",
+        success: false,
+      });
+    }
+    loggedInUser.following = loggedInUser.following.filter((name) => name !== userName);
+    user.followers = user.followers.filter((name) => name !== loggedInUser.username);
+    await loggedInUser.save();
+    await user.save();
+    return res.status(200).json({
+      message: "User unfollowed successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
