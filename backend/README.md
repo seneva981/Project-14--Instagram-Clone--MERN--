@@ -11,6 +11,7 @@ This is the backend server for the Instagram Clone project, built with Node.js, 
 - User profile updation for different fields
 - Get suggested users to follow (suggested users API)
 - User can follow another user by username (follow user API)
+- User can unfollow another user by username (unfollow user API)
 - MongoDB integration using Mongoose
 - Organized project structure (middlewares, controllers, models, routes, utils)
 - Environment variable support with dotenv
@@ -372,6 +373,70 @@ frontend/                   # (Frontend code, not covered yet)
         ```
   - **Notes:**
     - This route allows the authenticated user to follow another user by their username.
+    - The route expects the JWT token to be present for authentication.
+    - The response does not include sensitive fields like password.
+    - Both users' follower/following lists are updated atomically.
+
+### Unfollow User
+
+- `PUT /user/unfollowUser/:username`
+  - **Protected Route:** Requires a valid JWT token.
+  - **Path Parameter:**
+    - `username` (string, required): The username of the user to unfollow.
+  - **Behavior:**
+    - The authenticated user (from JWT) will unfollow the user specified by `:username`.
+    - If the user is not currently being followed, a 400 error is returned.
+    - Both users' follower/following lists are updated accordingly.
+    - The route uses the `isAuthenticated` middleware for authentication.
+  - **Response:**
+    - `200 OK` on successful unfollow
+      - Example response:
+        ```json
+        {
+          "message": "User unfollowed successfully",
+          "success": true
+        }
+        ```
+    - `400` if the username is missing in the params or the user is not being followed
+      - Example error response:
+        ```json
+        {
+          "message": "Username is missing in the params",
+          "success": false
+        }
+        ```
+        or
+        ```json
+        {
+          "message": "You are not following this user",
+          "success": false
+        }
+        ```
+    - `404` if the user to unfollow or the logged-in user is not found
+      - Example error response:
+        ```json
+        {
+          "message": "User not found",
+          "success": false
+        }
+        ```
+        or
+        ```json
+        {
+          "message": "Logged in user not found",
+          "success": false
+        }
+        ```
+    - `401` if the user is not authenticated or the token is invalid/expired
+      - Example error response:
+        ```json
+        {
+          "message": "Unauthorized because token is missing or invalid",
+          "success": false
+        }
+        ```
+  - **Notes:**
+    - This route allows the authenticated user to unfollow another user by their username.
     - The route expects the JWT token to be present for authentication.
     - The response does not include sensitive fields like password.
     - Both users' follower/following lists are updated atomically.
